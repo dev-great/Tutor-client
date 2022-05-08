@@ -1,12 +1,7 @@
+// ignore_for_file: avoid_unnecessary_containers
+
 import 'package:flutter/material.dart';
-import 'package:flutterwave/flutterwave.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:provider/provider.dart';
-import 'package:tutor/screens/widgets/account.dart';
-import 'package:tutor/screens/widgets/feeds.dart';
-import 'package:tutor/screens/widgets/quiz.dart';
-import 'package:tutor/screens/widgets/tutor.dart';
-import 'package:tutor/states/tutor.dart';
+import 'package:multiselect/multiselect.dart';
 
 class TutorList extends StatefulWidget {
   const TutorList({
@@ -18,189 +13,365 @@ class TutorList extends StatefulWidget {
 }
 
 class _TutorListState extends State<TutorList> {
-  final String currency = FlutterwaveCurrency.NGN;
-  final String fullname = "Greatness Marshal";
-  final String email = "gmarshal070@gmail.com";
-  final String amount = "15000";
-  final String phone = "08100808038";
-
-  void _makeFlutterwavePayment(BuildContext context, String fullname,
-      String phone, String email, String amount) async {
-    try {
-      Flutterwave flutterwave = Flutterwave.forUIPayment(
-          //the first 10 fields below are required/mandatory
-          context: this.context,
-          fullName: fullname,
-          phoneNumber: phone,
-          email: email,
-          amount: "15000",
-          //Use your Public and Encription Keys from your Flutterwave account on the dashboard
-          encryptionKey: "f2168d22aa194bcd28fe6cb1",
-          publicKey: "FLWPUBK-4f8c3b3f3d14be16cb36916ca7fb42b5-X",
-          currency: currency,
-          txRef: DateTime.now().toIso8601String(),
-          //Setting DebugMode below to true since will be using test mode.
-          //You can set it to false when using production environment.
-          isDebugMode: false,
-          //configure the the type of payments that your business will accept
-          acceptCardPayment: true,
-          acceptUSSDPayment: true,
-          acceptAccountPayment: false,
-          acceptFrancophoneMobileMoney: false,
-          acceptGhanaPayment: true,
-          acceptMpesaPayment: true,
-          acceptRwandaMoneyPayment: false,
-          acceptUgandaPayment: false,
-          acceptZambiaPayment: false);
-
-      final response = await flutterwave.initializeForUiPayments();
-      if (response == null) {
-        print("Transaction Failed");
-      } else {
-        if (response.status == "Transaction successful") {
-          print(response.data);
-          print(response.message);
-        } else {
-          print(response.message);
-        }
-      }
-    } catch (error) {
-      print(error);
-    }
-  }
-
-  Widget currentScreen = TutorScreen();
-  bool _init = true;
-  bool _isLoding = false;
-
-  @override
-  void didChangeDependencies() async {
-    if (_init) {
-      _isLoding =
-          await Provider.of<TutorState>(context, listen: false).getTutor();
-      setState(() {});
-    }
-    _init = false;
-    super.didChangeDependencies();
-  }
+  int currentValue = 0;
+  List<String> selected = [];
+  String _selectedGender = 'Physical';
 
   @override
   Widget build(BuildContext context) {
-    final tutor = Provider.of<TutorState>(context, listen: false).tutor;
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
-        toolbarHeight: 120,
-        flexibleSpace: FlexibleSpaceBar(
-          collapseMode: CollapseMode.pin,
-          background: Padding(
-            padding: const EdgeInsets.only(top: 55, left: 15),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Available Tutors",
-                  style: TextStyle(
-                      fontFamily: "GTWalsheimPro",
-                      fontSize: 32,
-                      color: Color.fromARGB(255, 0, 39, 75),
-                      fontWeight: FontWeight.bold),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Text(
-                    "Select a tutor closer to you.",
-                    style: TextStyle(
-                        fontFamily: "GTWalsheimPro",
-                        fontSize: 17,
-                        color: const Color.fromARGB(255, 0, 39, 75)
-                            .withOpacity(0.5),
-                        fontWeight: FontWeight.bold),
+        leading: IconButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            icon: const Icon(
+              Icons.arrow_back_ios,
+              color: Colors.black,
+            )),
+      ),
+      body: SingleChildScrollView(
+        child: Container(
+            child: Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Center(
+                child: Image(
+                  height: 84,
+                  width: 84,
+                  image: AssetImage(
+                    "assets/images/luncher.png",
                   ),
                 ),
-              ],
-            ),
-          ),
-        ),
-      ),
-      body: ListView.builder(
-          itemCount: tutor.length,
-          itemBuilder: (BuildContext context, int index) {
-            return GestureDetector(
-              onTap: () {
-                final name = fullname;
-                final userPhone = phone;
-                final userEmail = email;
-                final amountPaid = amount;
-
-                _makeFlutterwavePayment(
-                    context, name, userPhone, userEmail, amountPaid);
-              },
-              child: Padding(
-                padding: const EdgeInsets.only(top: 10),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 30, right: 30),
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    ListTile(
-                      leading: CircleAvatar(
-                        radius: 15,
-                        backgroundColor: Colors.black,
-                        backgroundImage: NetworkImage(
-                            "http://192.168.43.196:8000 ${tutor[index].image.toString()}"),
-                      ),
-                      trailing: Column(
-                        children: [
-                          Text(
-                            tutor[index].location.toString(),
-                            style: const TextStyle(
-                                fontFamily: "GTWalsheimPro",
-                                fontSize: 16,
-                                color: Color.fromARGB(255, 0, 39, 75),
-                                fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            "₦15,000 pre/Month ",
-                            textAlign: TextAlign.start,
-                            style: TextStyle(
-                                fontFamily: "GTWalsheimPro",
-                                fontSize: 14,
-                                color: Color.fromARGB(255, 250, 1, 1)
-                                    .withOpacity(0.5),
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                      title: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "${tutor[index].tutor.toString()} ",
-                            style: const TextStyle(
-                                fontFamily: "GTWalsheimPro",
-                                fontSize: 18,
-                                color: Color.fromARGB(255, 0, 39, 75),
-                                fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            "${tutor[index].email.toString()} ",
-                            textAlign: TextAlign.start,
-                            style: TextStyle(
-                                fontFamily: "GTWalsheimPro",
-                                fontSize: 14,
-                                color: const Color.fromARGB(255, 0, 39, 75)
-                                    .withOpacity(0.5),
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ],
+                    Center(
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width / 2,
+                        child: const Text(
+                          "Tell us about your child’s need",
+                          style: TextStyle(
+                              fontFamily: "GTWalsheimPro",
+                              fontSize: 24,
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ),
-                    const Divider(),
+                    const SizedBox(height: 10),
+                    Center(
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width / 1.5,
+                        child: Text(
+                          "What’s your goal and what subjects do your kids need help with?",
+                          style: TextStyle(
+                              fontFamily: "GTWalsheimPro",
+                              fontSize: 17,
+                              color: const Color.fromARGB(255, 0, 39, 75)
+                                  .withOpacity(0.5),
+                              fontWeight: FontWeight.w600),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
                   ],
                 ),
               ),
-            );
-          }),
+              const Padding(
+                padding: EdgeInsets.only(left: 30, right: 30),
+                child: Text(
+                  "For Child 1 in Pre-Nursery",
+                  style: TextStyle(
+                      fontFamily: "GTWalsheimPro",
+                      fontSize: 17,
+                      color: Color(0xFF4960F9),
+                      fontWeight: FontWeight.w600),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.only(left: 30, right: 30),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "What’s your goal for this child?",
+                      style: TextStyle(
+                          fontFamily: "GTWalsheimPro",
+                          fontSize: 17,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w600),
+                    ),
+                    DropDownMultiSelect(
+                      onChanged: (List<String> x) {
+                        setState(() {
+                          selected = x;
+                        });
+                      },
+                      options: const ['a', 'b', 'c', 'd'],
+                      selectedValues: selected,
+                      whenEmpty: 'Select a goal',
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 30, right: 30),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 0),
+                      child: const Text(
+                        "What subjects?",
+                        style: TextStyle(
+                            fontFamily: "GTWalsheimPro",
+                            fontSize: 17,
+                            color: Colors.black,
+                            fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    Container(
+                      child: DropDownMultiSelect(
+                        onChanged: (List<String> x) {
+                          setState(() {
+                            selected = x;
+                          });
+                        },
+                        options: const ['a', 'b', 'c', 'd'],
+                        selectedValues: selected,
+                        whenEmpty: 'Select subjects',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 30, right: 30),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Tell us a bit about this child",
+                      style: TextStyle(
+                          fontFamily: "GTWalsheimPro",
+                          fontSize: 17,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 15),
+                    Container(
+                      height: 120,
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(5),
+                          color: Colors.white,
+                          border: Border.all(
+                            color: Colors.black38,
+                          )),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextFormField(
+                          maxLines: 10,
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                          decoration: const InputDecoration(
+                              focusedBorder: InputBorder.none,
+                              border: InputBorder.none,
+                              hintText: "Leave us a feedback...",
+                              labelStyle: TextStyle(
+                                color: Colors.black54,
+                                fontSize: 16,
+                                fontFamily: "GTWalsheimPro",
+                              )),
+                          onSaved: (v) {
+                            v = v!;
+                          },
+                          validator: (v) {
+                            if (v!.isEmpty) {
+                              return 'Enter Your feedback';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                  ],
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.only(left: 30, right: 30),
+                child: Text(
+                  "What Curriculum is used at your child’s school?",
+                  style: TextStyle(
+                      fontFamily: "GTWalsheimPro",
+                      fontSize: 17,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.only(left: 30, right: 30),
+                child: Text(
+                  "Do you prefer inlesson or online lessons?",
+                  style: TextStyle(
+                      fontFamily: "GTWalsheimPro",
+                      fontSize: 17,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600),
+                ),
+              ),
+              Container(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width / 1.3,
+                      child: Row(
+                        children: [
+                          Radio(
+                            value: 'Any gender is fine',
+                            groupValue: _selectedGender,
+                            activeColor: const Color(0xFF4960F9),
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedGender = value.toString();
+                              });
+                            },
+                          ),
+                          const Text('Any gender is fine'),
+                          Radio(
+                            value: 'Physical',
+                            groupValue: _selectedGender,
+                            activeColor: const Color(0xFF4960F9),
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedGender = value.toString();
+                              });
+                            },
+                          ),
+                          const Text('Physical Lesson(s)'),
+                          Radio(
+                            value: 'Online',
+                            activeColor: const Color(0xFF4960F9),
+                            groupValue: _selectedGender,
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedGender = value.toString();
+                              });
+                            },
+                          ),
+                          const Text('Online Lesson(s)'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const TutorList()));
+                        },
+                        child: SizedBox(
+                          child: Container(
+                            height: 60,
+                            width: MediaQuery.of(context).size.width / 1.3,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF4960F9),
+                              borderRadius: BorderRadius.circular(19),
+                            ),
+                            child: Stack(
+                              children: [
+                                Positioned(
+                                  top: 0,
+                                  left:
+                                      MediaQuery.of(context).size.width / 1.97,
+                                  child: const SizedBox(
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.only(
+                                        topRight: Radius.circular(18),
+                                      ),
+                                      child: Image(
+                                        image: AssetImage(
+                                            "assets/images/btn1.png"),
+                                        fit: BoxFit.fill,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 0,
+                                  left:
+                                      MediaQuery.of(context).size.width / 1.58,
+                                  child: const ClipRRect(
+                                    borderRadius: BorderRadius.only(
+                                      topRight: Radius.circular(18),
+                                    ),
+                                    child: Image(
+                                      image:
+                                          AssetImage("assets/images/btn2.png"),
+                                      fit: BoxFit.fill,
+                                    ),
+                                  ),
+                                ),
+                                Center(
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: const [
+                                      Text(
+                                        "Continue",
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            color: Colors.white,
+                                            fontFamily: "GTWalsheimPro",
+                                            fontWeight: FontWeight.w600,
+                                            decoration: TextDecoration.none),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 40),
+            ],
+          ),
+        )),
+      ),
     );
   }
 }
